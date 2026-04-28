@@ -5,54 +5,98 @@ import { auth } from '@/lib/firebase';
 import { useFirebase } from '@/lib/FirebaseProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Smartphone, Zap, MessageCircle, DollarSign } from 'lucide-react';
+import { Smartphone, Zap, MessageCircle, DollarSign, LogIn, Menu as MenuIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function LandingPage() {
   const { user, loading } = useFirebase();
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error signing in:', error);
-    }
-  };
-
   if (user && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-4">
-        <h1 className="text-4xl font-bold">Bem-vindo de volta!</h1>
-        <Button onClick={() => navigate('/dashboard')} size="lg">Ir para o Painel</Button>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-6 bg-zinc-950 text-white">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center space-y-4"
+        >
+          <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+             <Zap className="w-10 h-10 text-white fill-white" />
+          </div>
+          <h1 className="text-4xl font-black">Bem-vindo de volta!</h1>
+          <p className="text-zinc-400">Você já está logado em sua conta.</p>
+          <Button onClick={() => navigate('/dashboard')} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-bold h-14 px-10 rounded-2xl shadow-xl shadow-green-500/20">
+            Ir para o Painel de Controle
+          </Button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center py-20 px-4 text-center bg-zinc-950 text-white">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-3xl space-y-6"
-        >
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight">
-            Seu Cardápio Digital <span className="text-green-500">no WhatsApp</span>
-          </h1>
-          <p className="text-xl text-zinc-400">
-            Crie seu cardápio em minutos, receba pedidos direto no seu WhatsApp e aumente suas vendas sem taxas abusivas.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <Button onClick={handleLogin} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-bold h-14 px-8 text-xl rounded-full">
-              Começar Agora Grátis
+    <div className="flex flex-col min-h-screen bg-zinc-950 selection:bg-green-500/30">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-black text-xl text-white">
+            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white fill-white" />
+            </div>
+            <span>ZapPedido</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" className="text-zinc-400 hover:text-white" onClick={() => navigate('/login')}>
+              Entrar
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-full hidden sm:flex" onClick={() => navigate('/register')}>
+              Começar Agora
             </Button>
           </div>
-        </motion.div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-green-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
+        
+        <div className="max-w-5xl mx-auto text-center space-y-8 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-6xl md:text-8xl font-black tracking-tight text-white leading-tight">
+              Seu Cardápio Digital <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">
+                no WhatsApp
+              </span>
+            </h1>
+          </motion.div>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto leading-relaxed"
+          >
+            Crie seu cardápio profissional em minutos, receba pedidos organizados direto no seu WhatsApp e aumente suas vendas sem pagar taxas abusivas de entrega.
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col sm:flex-row justify-center gap-4 pt-4"
+          >
+            <Button onClick={() => navigate('/register')} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-black h-16 px-10 text-xl rounded-2xl shadow-2xl shadow-green-600/20 transition-all hover:scale-105 active:scale-95">
+              Começar Agora Grátis
+            </Button>
+            <Button variant="outline" size="lg" className="border-white/10 text-white hover:bg-white/5 font-bold h-16 px-10 text-xl rounded-2xl" onClick={() => navigate('/login')}>
+              Acessar Minha Conta
+            </Button>
+          </motion.div>
+        </div>
       </section>
 
       {/* Features Section */}
