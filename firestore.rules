@@ -1,0 +1,132 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    
+    // 1. The "Master Gate" (Relational Sync)
+    function isStoreOwner(storeId) {
+      return isSignedIn() && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerId == request.auth.uid;
+    }
+
+    match /stores/{storeId} {
+      // 3. Path Variable Hardening
+      allow get: if isValidId(storeId);
+      allow list: if true; 
+
+      allow create: if isVerified() && isValidStore(incoming()) 
+                     && incoming().ownerId == request.auth.uid
+                     && incoming().createdAt == request.time
+                     && incoming().updatedAt == request.time;
+      
+      allow update: if isSignedIn()
+                     && resource.data.ownerId == request.auth.uid
+                     && incoming().ownerId == existing().ownerId
+                     && incoming().createdAt == existing().createdAt
+                     && incoming().updatedAt == request.time
+                     && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'whatsapp', 'address', 'logoUrl', 'slug', 'updatedAt', 'deliveryFee'])
+                     && (!('name' in incoming().diff(existing()).affectedKeys()) || (incoming().name is string && incoming().name.size() >= 3))
+                     && (!('whatsapp' in incoming().diff(existing()).affectedKeys()) || (incoming().whatsapp is string && incoming().whatsapp.size() >= 8))
+                     && (!('slug' in incoming().diff(existing()).affectedKeys()) || (incoming().slug is string && incoming().slug.size() >= 3));
+
+      // Subcollections
+      match /categories/{categoryId} {
+        allow read: if isValidId(storeId);
+        allow create: if isStoreOwner(storeId) && isValidId(categoryId) && isValidCategory(incoming())
+                        && incoming().storeId == storeId
+                        && incoming().keys().size() >= 2;
+        allow update: if isStoreOwner(storeId) && isValidCategory(incoming())
+                        && incoming().storeId == existing().storeId
+                        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'order']);
+        allow delete: if isStoreOwner(storeId);
+      }
+
+      match /products/{productId} {
+        allow read: if isValidId(storeId);
+        allow create: if isStoreOwner(storeId) && isValidId(productId) && isValidProduct(incoming())
+                        && incoming().storeId == storeId
+                        && incoming().keys().size() >= 4;
+        allow update: if isStoreOwner(storeId) && isValidProduct(incoming())
+                        && incoming().storeId == existing().storeId
+                        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'imageUrl', 'categoryId', 'available']);
+        allow delete: if isStoreOwner(storeId);
+      }
+
+      match /orders/{orderId} {
+        allow read, update, delete: if isStoreOwner(storeId);
+        allow create: if isValidId(storeId) && isValidOrder(incoming())
+                        && incoming().storeId == storeId
+                        && incoming().status == 'Novo'
+                        && (!('customerId' in incoming()) || (isSignedIn() && incoming().customerId == request.auth.uid))
+                        && incoming().createdAt == request.time
+                        && incoming().updatedAt == request.time;
+      }
+    }
+
+    match /customers/{customerId} {
+      allow get: if isSignedIn() && request.auth.uid == customerId;
+      allow create: if isSignedIn() && request.auth.uid == customerId && isValidCustomer(incoming())
+                      && incoming().createdAt == request.time
+                      && incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && request.auth.uid == customerId && isValidCustomer(incoming())
+                      && incoming().createdAt == existing().createdAt
+                      && incoming().updatedAt == request.time
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'updatedAt']);
+    }
+
+    // 2. Validation Blueprints
+    function isValidOrder(data) {
+      return data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 100
+             && data.items is list && data.items.size() > 0
+             && data.total is number && data.total >= 0
+             && data.status in ['Novo', 'Em preparo', 'Finalizado', 'Cancelado']
+             && data.orderNumber is int
+             && (!('customerId' in data) || (data.customerId is string && data.customerId.size() <= 128))
+             && (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 20))
+             && (!('customerAddress' in data) || (data.customerAddress is string && data.customerAddress.size() <= 500));
+    }
+
+    function isValidStore(data) {
+      return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
+             && data.whatsapp is string && data.whatsapp.size() >= 8 && data.whatsapp.size() <= 20
+             && data.ownerId == request.auth.uid
+             && data.slug is string && data.slug.size() >= 3 && data.slug.size() <= 50
+             && (!('description' in data) || (data.description is string && data.description.size() <= 1000))
+             && (!('address' in data) || (data.address is string && data.address.size() <= 200))
+             && (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000000))
+             && (!('deliveryFee' in data) || (data.deliveryFee is number && data.deliveryFee >= 0));
+    }
+
+    function isValidCategory(data) {
+      return data.name is string && data.name.size() >= 1 && data.name.size() <= 50
+             && data.storeId is string
+             && (!('order' in data) || data.order is int);
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+             && data.price is number && data.price >= 0
+             && data.categoryId is string
+             && data.storeId is string
+             && (!('description' in data) || (data.description is string && data.description.size() <= 500))
+             && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1000000))
+             && (!('available' in data) || data.available is bool);
+    }
+
+    function isValidCustomer(data) {
+      return data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+             && data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 20
+             && data.address is string && data.address.size() >= 5 && data.address.size() <= 500
+             && data.email is string && data.email.size() >= 5 && data.email.size() <= 100;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "ZapPedidos",
+  "description": "Cardápio digital interativo com recebimento de pedidos diretamente no WhatsApp. Ideal para restaurantes e delivery.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
