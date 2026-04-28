@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useFirebase } from '@/lib/FirebaseProvider';
+import { getAuthErrorMessage } from '@/lib/auth-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,11 +36,7 @@ export default function LoginPage() {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        toast.error('Email ou senha incorretos');
-      } else {
-        toast.error('Erro ao entrar. Tente novamente.');
-      }
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -54,7 +51,7 @@ export default function LoginPage() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error('Erro ao entrar com Google');
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }

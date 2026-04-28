@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { auth } from '@/lib/firebase';
+import { getAuthErrorMessage } from '@/lib/auth-error';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
@@ -93,7 +94,7 @@ export default function MenuPage() {
       toast.success('Login realizado com sucesso!');
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao entrar com Google');
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setAuthLoading(false);
     }
@@ -115,13 +116,7 @@ export default function MenuPage() {
       toast.success(authMode === 'login' ? 'Bem-vindo de volta!' : 'Conta criada com sucesso!');
     } catch (error: any) {
       console.error(error);
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        toast.error('Email ou senha incorretos');
-      } else if (error.code === 'auth/email-already-in-use') {
-        toast.error('Este email já está em uso');
-      } else {
-        toast.error('Erro na autenticação');
-      }
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setAuthLoading(false);
     }
@@ -836,5 +831,4 @@ export default function MenuPage() {
 
   );
 }
-
 

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useFirebase } from '@/lib/FirebaseProvider';
+import { getAuthErrorMessage } from '@/lib/auth-error';
 import { storeService } from '@/services/storeService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,8 +62,10 @@ export default function RegisterPage() {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);
-      if (error.code === 'auth/email-already-in-use') {
-        toast.error('Este email já está em uso');
+      if (error.code) {
+        toast.error(getAuthErrorMessage(error));
+      } else if (String(error?.message || error).includes('permission-denied')) {
+        toast.error('Conta criada, mas nao foi possivel criar a loja. Publique as regras atualizadas do Firestore.');
       } else {
         toast.error('Erro ao criar conta. Tente novamente.');
       }
@@ -80,7 +83,7 @@ export default function RegisterPage() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error('Erro ao entrar com Google');
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }

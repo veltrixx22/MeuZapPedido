@@ -23,7 +23,7 @@ service cloud.firestore {
       allow get: if isValidId(storeId);
       allow list: if true; 
 
-      allow create: if isVerified() && isValidStore(incoming()) 
+      allow create: if isSignedIn() && isValidStore(incoming()) 
                      && incoming().ownerId == request.auth.uid
                      && incoming().createdAt == request.time
                      && incoming().updatedAt == request.time;
