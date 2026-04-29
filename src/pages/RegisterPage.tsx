@@ -64,14 +64,19 @@ export default function RegisterPage() {
       console.error('Registration error:', error);
       if (error.code) {
         toast.error(getAuthErrorMessage(error));
-      } else if (String(error?.message || error).includes('permission-denied')) {
-        toast.error('Conta criada, mas nao foi possivel criar a loja. Publique as regras atualizadas do Firestore.');
+      } else if (isFirestorePermissionError(error)) {
+        toast.error('Conta criada, mas a loja foi bloqueada pelas regras do Firestore. Publique as regras atualizadas.');
       } else {
         toast.error('Erro ao criar conta. Tente novamente.');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const isFirestorePermissionError = (error: unknown) => {
+    const message = String(error instanceof Error ? error.message : error);
+    return message.includes('permission-denied') || message.includes('Missing or insufficient permissions');
   };
 
   const handleGoogleLogin = async () => {
