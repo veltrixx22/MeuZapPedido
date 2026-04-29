@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0f0f10;
+  color: #f8fafc;
+}
+
+::selection {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+.food-gradient {
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+}
+
+.glass-panel {
+  background: rgba(31, 31, 34, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.soft-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}

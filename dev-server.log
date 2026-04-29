@@ -1,16 +1,28 @@
 
-> react-example@0.0.0 dev
-> vite --port=3000 --host=0.0.0.0 --host 127.0.0.1 --port 3000
+> meu-zappedido@1.0.0 dev
+> next dev -H 127.0.0.1 --port 3010
 
-Port 3000 is in use, trying another one...
-Port 3001 is in use, trying another one...
+   ▲ Next.js 15.5.15
+   - Local:        http://127.0.0.1:3010
+   - Network:      http://127.0.0.1:3010
 
-  [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m725[22m[2m[0m ms[22m
-
-  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m3002[22m/[39m
-[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
-[2m20:52:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
-[2m20:52:15[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
-[2m20:55:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/RegisterPage.tsx, /src/index.css[22m
-[2m20:56:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
-[2m20:56:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+ ✓ Starting...
+ ✓ Ready in 3.5s
+ ○ Compiling /cardapio/[slug] ...
+ ✓ Compiled /cardapio/[slug] in 11.6s (1041 modules)
+ GET / 200 in 13172ms
+ GET /login 200 in 13391ms
+ ⨯ Error: Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.
+    at createClient (src\lib\supabase\server.ts:10:11)
+    at async getPublicMenu (src\lib\data.ts:53:20)
+    at async PublicMenuPage (src\app\cardapio\[slug]\page.tsx:7:16)
+   8 |
+   9 |   if (!url || !key) {
+> 10 |     throw new Error("Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+     |           ^
+  11 |   }
+  12 |
+  13 |   return createServerClient(url, key, { {
+  digest: '79963817'
+}
+ GET /cardapio/slug-inexistente 500 in 13805ms
